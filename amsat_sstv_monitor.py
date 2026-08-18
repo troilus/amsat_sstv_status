@@ -21,6 +21,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 import sys
 import threading
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -75,21 +76,26 @@ def send_ntfy(cfg, title, body, tags=("satellite",), token=None):
     if not topic:
         raise RuntimeError("config.json 中 ntfy_topic 为空")
     server = (cfg.get("ntfy_server") or "https://ntfy.sh").rstrip("/")
-    payload = json.dumps(
-        {"topic": topic, "message": body, "title": title, "tags": list(tags)},
-        ensure_ascii=False,
-    ).encode("utf-8")
-    headers = {"Content-Type": "application/json; charset=utf-8"}
+    text = f"{title}\n{body}".encode("utf-8")
+    headers = {
+        "Content-Type": "text/plain; charset=utf-8",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    }
     if token:
         headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(
-        f"{server}/",
-        data=payload,
+        f"{server}/{urllib.parse.quote(topic)}",
+        data=text,
         method="POST",
         headers=headers,
     )
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(
+            f"ntfy 发送失败: HTTP {e.code}: {e.read().decode('utf-8', 'replace')}"
+        )
 
 
 def fetch_reports(hours, limit=500, name=None, status=None):
