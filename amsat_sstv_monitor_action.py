@@ -3,17 +3,18 @@
 """AMSAT SSTV 状态监控（GitHub Actions 版）
 
 配合 .github/workflows/amsat-sstv-monitor.yml 每 15 分钟运行一次，
-检测 [SSTV] 卫星的新 Heard 报告并通过 ntfy.sh 推送（仅使用 ntfy，不发 Bark）。
+检测 [SSTV] 卫星的新 Heard 报告并通过自建 ntfy 服务器推送（仅使用 ntfy，不发 Bark）。
+
+推送服务器：https://ntfy.xanyi.qzz.io，topic 写死为 amsat_status_sstv_heard。
 
 跨运行去重状态由 GitHub Actions cache 持久化（workflow 负责恢复/保存 seen.json，
 采用「每次运行唯一 key + restore-keys 前缀匹配」模式绕过 cache 不可覆盖的限制）。
 
 首次运行（无状态文件）发送一次启动测试通知并记录基线，不逐条推送历史报告。
 
-环境变量（可选）：
-  NTFY_SERVER  ntfy 服务器地址，默认 https://ntfy.sh
-  NTFY_TOKEN   ntfy 访问令牌（私有 topic 时设置）
-  HOURS        查询窗口小时数，默认 24
+环境变量：
+  NTFY_TOKEN  必填，ntfy 访问令牌
+  HOURS       可选，查询窗口小时数，默认 24
 """
 
 import argparse
@@ -31,6 +32,7 @@ from amsat_sstv_monitor import (
 )
 
 NTFY_TOPIC = "amsat_status_sstv_heard"
+NTFY_SERVER = "https://ntfy.xanyi.qzz.io"
 
 
 def main():
@@ -42,9 +44,12 @@ def main():
 
     cfg = {
         "ntfy_topic": NTFY_TOPIC,
-        "ntfy_server": os.getenv("NTFY_SERVER", "https://ntfy.sh"),
+        "ntfy_server": NTFY_SERVER,
     }
     token = os.getenv("NTFY_TOKEN", "") or None
+    if not token:
+        logging.error("未配置 NTFY_TOKEN 环境变量")
+        sys.exit(1)
     hours = int(os.getenv("HOURS", "24"))
     state_path = args.state
 
