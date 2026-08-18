@@ -38,6 +38,7 @@ DEFAULT_CONFIG = {
     "bark_server": "https://api.day.app",
     "ntfy_server": "https://ntfy.sh",
     "ntfy_topic": "amsat_status_sstv_heard",
+    "ntfy_token": "",
     "poll_interval": 900,
     "hours": 24,
     "seen_file": os.path.join(SCRIPT_DIR, "seen.json"),
@@ -155,7 +156,8 @@ def get_notifiers(cfg):
     if cfg.get("bark_key"):
         notifiers.append(("Bark", lambda t, b: send_bark(cfg, t, b)))
     if cfg.get("ntfy_topic"):
-        notifiers.append(("ntfy", lambda t, b: send_ntfy(cfg, t, b)))
+        token = cfg.get("ntfy_token") or None
+        notifiers.append(("ntfy", lambda t, b: send_ntfy(cfg, t, b, token=token)))
     return notifiers
 
 
@@ -462,6 +464,8 @@ def main():
         print(f"通知渠道已启用：{'、'.join(notifier_names)}")
     else:
         print("警告：未配置任何通知渠道（bark_key / ntfy_topic），通知功能不可用，程序正常运行")
+    if cfg.get("ntfy_topic") and not cfg.get("ntfy_token"):
+        print("提示：ntfy 未配置令牌（config.json 中 ntfy_token 为空），将以匿名方式推送")
     print(f"配置文件: {config_path}")
 
     stop_event = threading.Event()
