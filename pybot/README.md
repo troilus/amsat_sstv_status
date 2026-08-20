@@ -40,12 +40,13 @@ To build locally instead, run `bash build_linux.sh` from this directory
 
 ## Flow
 
-`/report` → satellite (paged, searchable) → status → year → month → day → hour →
-15-minute period → callsign → grid → confirm → submit.
+`/report` → satellite (paged, searchable) → status → **date confirm** (is it today?)
+→ **time confirm** (is it the nearest 15-min UTC slot?) → callsign → grid → confirm → submit.
 
-Defaults are preselected and shown with ✓: date/time = current UTC (nearest 15-min
-slot); callsign/grid = last used per chat (stored in the profile). When no default
-exists the bot asks for the value as a text message.
+Picking "different date/time" opens the year → month → day and hour → 15-minute
+period pickers. Defaults are preselected and shown with ✓: date = today (UTC),
+time = nearest 15-min slot (UTC); callsign/grid = last used per chat (stored in
+the profile). When no default exists the bot asks for the value as a text message.
 
 Re-submitting the same satellite + callsign + hour + 15-minute period overwrites
 the previous report (useful for corrections).
