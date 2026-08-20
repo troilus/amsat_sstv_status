@@ -25,10 +25,12 @@ FUTURE_SLACK_S = 60
 
 NEXT = {
     "satellite": "status",
-    "status": "year",
+    "status": "date",
+    "date": "time",
     "year": "month",
     "month": "day",
-    "day": "hour",
+    "day": "time",
+    "time": "callsign",
     "hour": "quarter",
     "quarter": "callsign",
     "callsign": "grid",
@@ -39,10 +41,12 @@ NEXT = {
 PREV = {
     "satellite": "satellite",
     "status": "satellite",
-    "year": "status",
+    "date": "status",
+    "year": "date",
     "month": "year",
     "day": "month",
-    "hour": "day",
+    "time": "date",
+    "hour": "time",
     "quarter": "hour",
     "callsign": "quarter",
     "grid": "callsign",
@@ -129,6 +133,12 @@ def _step_text(state, ctx):
         if state.get("search"):
             return t(lang, "satSearchHint")
         return t(lang, "satPrompt", {"page": state["sat_page"] + 1, "total": _page_count(len(ctx["catalog"]), SAT_PAGE_SIZE)})
+    if step == "date":
+        date, _ = _report_time(state)
+        return t(lang, "datePrompt", {"date": date})
+    if step == "time":
+        _, tpart = _report_time(state)
+        return t(lang, "timePrompt", {"time": tpart})
     if step in ("status", "year", "month", "day", "hour", "quarter", "callsign", "grid"):
         return t(lang, step + "Prompt")
     if step == "confirm":
@@ -157,6 +167,12 @@ def _step_keyboard(state, ctx):
         return keyboards.satellite_keyboard(lst, state["sat_page"], _page_count(len(lst), SAT_PAGE_SIZE), lang)
     if step == "status":
         return keyboards.status_keyboard(ctx["statuses"], lang)
+    if step == "date":
+        date, _ = _report_time(state)
+        return keyboards.date_keyboard(date, lang)
+    if step == "time":
+        _, tpart = _report_time(state)
+        return keyboards.time_keyboard(tpart, lang)
     if step == "year":
         cur = state.get("year") or datetime.now(timezone.utc).year
         return keyboards.year_keyboard(cur, state["year_page"], _page_count(cur - YEAR_MIN + 1, YEAR_PAGE_SIZE), state.get("year"), lang)
@@ -523,7 +539,39 @@ async def on_callback(update, context):
 
     if data.startswith("st:"):
         state["status"] = keyboards.b64url_decode(data.split(":", 1)[1])
-        _enter_step(state, ctx["profile"], "year")
+        _enter_step(state, ctx["profile"], "date")
+        store.save_wizard(state)
+        await render()
+        store.save_wizard(state)
+        return
+
+    if data == "dty":
+        state["step"] = "time"
+        state["awaiting"] = None
+        store.save_wizard(state)
+        await render()
+        store.save_wizard(state)
+        return
+
+    if data == "dtn":
+        state["step"] = "year"
+        state["year_page"] = 0
+        state["awaiting"] = None
+        store.save_wizard(state)
+        await render()
+        store.save_wizard(state)
+        return
+
+    if data == "tmy":
+        _enter_step(state, ctx["profile"], "callsign")
+        store.save_wizard(state)
+        await render()
+        store.save_wizard(state)
+        return
+
+    if data == "tmn":
+        state["step"] = "hour"
+        state["awaiting"] = None
         store.save_wizard(state)
         await render()
         store.save_wizard(state)
@@ -554,7 +602,7 @@ async def on_callback(update, context):
 
     if data.startswith("dy:"):
         state["day"] = int(data.split(":")[1])
-        state["step"] = "hour"
+        state["step"] = "time"
         store.save_wizard(state)
         await render()
         store.save_wizard(state)

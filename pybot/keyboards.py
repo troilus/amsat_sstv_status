@@ -57,6 +57,24 @@ def status_keyboard(statuses, lang, selected=None):
     return InlineKeyboardMarkup(rows)
 
 
+def date_keyboard(date_str, lang):
+    return InlineKeyboardMarkup(
+        [
+            [_b(t(lang, "dateYes", {"date": date_str}), "dty"), _b(t(lang, "dateNo"), "dtn")],
+            back_cancel_row(lang),
+        ]
+    )
+
+
+def time_keyboard(time_str, lang):
+    return InlineKeyboardMarkup(
+        [
+            [_b(t(lang, "timeYes", {"time": time_str}), "tmy"), _b(t(lang, "timeNo"), "tmn")],
+            back_cancel_row(lang),
+        ]
+    )
+
+
 def year_keyboard(current_year, page, total_pages, selected, lang):
     years = list(range(current_year, 2000, -1))
     rows = []
