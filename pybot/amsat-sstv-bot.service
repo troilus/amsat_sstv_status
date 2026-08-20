@@ -1,0 +1,22 @@
+# systemd service unit for the AMSAT Status Bot (pybot).
+# Copy to: /etc/systemd/system/amsat-sstv-bot.service
+# Adjust User / WorkingDirectory to match your setup, then:
+#   systemctl daemon-reload && systemctl enable --now amsat-sstv-bot
+
+[Unit]
+Description=AMSAT Status Bot (PyBot)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=amsat
+WorkingDirectory=/opt/amsat_sstv_bot
+# state.json and config.json live next to the binary in WorkingDirectory
+ExecStart=/opt/amsat_sstv_bot/amsat_sstv_bot
+Restart=on-failure
+RestartSec=5
+Environment=BOT_CONFIG=/opt/amsat_sstv_bot/config.json
+
+[Install]
+WantedBy=multi-user.target

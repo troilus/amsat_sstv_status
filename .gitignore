@@ -2,3 +2,9 @@ config.json
 seen.json
 __pycache__/
 *.pyc
+state.json
+.build-venv/
+build/
+dist/
+*.spec
+build.log

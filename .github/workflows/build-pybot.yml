@@ -1,0 +1,35 @@
+name: Build pybot Linux binary
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: pybot
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Build binary
+        working-directory: pybot
+        run: pyinstaller --onefile --clean --name amsat_sstv_bot bot.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: amsat-sstv-bot-linux
+          path: pybot/dist/amsat_sstv_bot

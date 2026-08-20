@@ -14,6 +14,21 @@ Feature-parity port of the Cloudflare Worker backend in `../tgbot`.
    python bot.py
    ```
 
+## Build a standalone Linux binary
+
+The repo ships a GitHub Actions workflow (`.github/workflows/build-pybot.yml`)
+that compiles the bot into a single self-contained Linux binary with PyInstaller:
+
+1. GitHub → **Actions** → **Build pybot Linux binary** → **Run workflow**.
+2. Download the `amsat-sstv-bot-linux` artifact.
+3. Place `amsat_sstv_bot` and `config.json` (with `telegram_token` set) in the
+   same directory on the target machine and run `./amsat_sstv_bot`. `state.json`
+   is auto-created next to the binary.
+
+A systemd unit example is provided in `amsat-sstv-bot.service`.
+To build locally instead, run `bash build_linux.sh` from this directory
+(creates a temporary venv and outputs `dist/amsat_sstv_bot`).
+
 ## Configuration (`config.json`)
 
 | Key               | Default                            | Description                          |
