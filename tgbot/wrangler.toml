@@ -1,0 +1,18 @@
+name = "amsat-status-tgbot"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+# KV namespace for wizard sessions, per-chat profile/language and satellite catalog cache.
+# Create it once:  wrangler kv namespace create SESSIONS
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[vars]
+# Public AMSAT Satellite Status API base URL.
+AMSAT_API_BASE = "https://www.amsat.org/status/api/v1"
+
+# Secrets (set via `wrangler secret put`):
+#   TELEGRAM_BOT_TOKEN   - token from @BotFather
+#   WEBHOOK_SECRET       - secret_token used to verify Telegram webhook calls
